@@ -73,6 +73,11 @@
    * basically call requestAnimationFrame, interpolate the values and call the
    * refresh method during a specified duration.
    *
+   * Events fired though sigma instance:
+   * *************
+   * animate.start  Fired at the beginning of the animation.
+   * animate.end    Fired at the end of the animation.
+   *
    * Recognized parameters:
    * **********************
    * Here is the exhaustive list of every accepted parameters in the settings
@@ -132,15 +137,9 @@
     }, {});
 
     s.animations = s.animations || Object.create({});
-    sigma.plugins.kill(s);
+    sigma.plugins.killAnimate(s);
 
-    // Do not refresh edgequadtree during drag:
-    var k,
-        c;
-    for (k in s.cameras) {
-      c = s.cameras[k];
-      c.edgequadtree._enabled = false;
-    }
+    s.dispatchEvent('animate.start'); // send a sigma event
 
     function step() {
       var p = (sigma.utils.dateNow() - start) / duration;
@@ -148,26 +147,21 @@
       if (p >= 1) {
         nodes.forEach(function(node) {
           for (var k in animate)
-            if (k in animate)
+            if (k in animate && animate[k] in node)
               node[k] = node[animate[k]];
         });
 
-        // Allow to refresh edgequadtree:
-        var k,
-            c;
-        for (k in s.cameras) {
-          c = s.cameras[k];
-          c.edgequadtree._enabled = true;
-        }
-
-        s.refresh();
-        if (typeof o.onComplete === 'function')
+        s.refresh({skipIndexation: true});
+        if (typeof o.onComplete === 'function') {
           o.onComplete();
-      } else {
+        }
+        s.dispatchEvent('animate.end'); // send a sigma event
+      }
+      else {
         p = easing(p);
         nodes.forEach(function(node) {
           for (var k in animate)
-            if (k in animate) {
+            if (k in animate && animate[k] in node) {
               if (k.match(/color$/))
                 node[k] = interpolateColors(
                   startPositions[node.id][k],
@@ -181,7 +175,7 @@
             }
         });
 
-        s.refresh();
+        s.refresh({skipIndexation: true});
         s.animations[id] = requestAnimationFrame(step);
       }
     }
@@ -189,16 +183,8 @@
     step();
   };
 
-  sigma.plugins.kill = function(s) {
+  sigma.plugins.killAnimate = function(s) {
     for (var k in (s.animations || {}))
       cancelAnimationFrame(s.animations[k]);
-
-    // Allow to refresh edgequadtree:
-    var k,
-        c;
-    for (k in s.cameras) {
-      c = s.cameras[k];
-      c.edgequadtree._enabled = true;
-    }
   };
 }).call(window);

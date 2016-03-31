@@ -1,12 +1,19 @@
 ;(function(undefined) {
   'use strict';
 
+  if (typeof sigma === 'undefined')
+    throw new Error('sigma is not declared');
+
+  // Initialize package:
+  sigma.utils.pkg('sigma.layouts');
+
   /**
    * Sigma ForceAtlas2.5 Webworker
    * ==============================
    *
    * Author: Guillaume Plique (Yomguithereal)
    * Algorithm author: Mathieu Jacomy @ Sciences Po Medialab & WebAtlas
+   * Autostop author: Sébastien Heymann @ Linkurious
    * Version: 1.0.3
    */
 
@@ -49,7 +56,10 @@
         barnesHutOptimize: false,
         barnesHutTheta: 0.5,
         startingIterations: 1,
-        iterationsPerRender: 1
+        iterationsPerRender: 1,
+        maxIterations: 1000,
+        avgDistanceThreshold: 0.01,
+        autoStop: false
       }
     };
 
@@ -120,51 +130,51 @@
 
       // DEBUG: safeguards
       if ((i % W.ppn) !== 0)
-        throw 'np: non correct (' + i + ').';
+        throw new Error('Invalid argument in np: "i" is not correct (' + i + ').');
       if (i !== parseInt(i))
-        throw 'np: non int.';
+        throw new TypeError('Invalid argument in np: "i" is not an integer.');
 
       if (p in nodeProperties)
         return i + nodeProperties[p];
       else
-        throw 'ForceAtlas2.Worker - ' +
-              'Inexistant node property given (' + p + ').';
+        throw new Error('ForceAtlas2.Worker - ' +
+              'Inexistant node property given (' + p + ').');
     }
 
     function ep(i, p) {
 
       // DEBUG: safeguards
       if ((i % W.ppe) !== 0)
-        throw 'ep: non correct (' + i + ').';
+        throw new Error('Invalid argument in ep: "i" is not correct (' + i + ').');
       if (i !== parseInt(i))
-        throw 'ep: non int.';
+        throw new TypeError('Invalid argument in ep: "i" is not an integer.');
 
       if (p in edgeProperties)
         return i + edgeProperties[p];
       else
-        throw 'ForceAtlas2.Worker - ' +
-              'Inexistant edge property given (' + p + ').';
+        throw new Error('ForceAtlas2.Worker - ' +
+              'Inexistant edge property given (' + p + ').');
     }
 
     function rp(i, p) {
 
       // DEBUG: safeguards
       if ((i % W.ppr) !== 0)
-        throw 'rp: non correct (' + i + ').';
+        throw new Error('Invalid argument in rp: "i" is not correct (' + i + ').');
       if (i !== parseInt(i))
-        throw 'rp: non int.';
+        throw new TypeError('Invalid argument in rp: "i" is not an integer.');
 
       if (p in regionProperties)
         return i + regionProperties[p];
       else
-        throw 'ForceAtlas2.Worker - ' +
-              'Inexistant region property given (' + p + ').';
+        throw new Error('ForceAtlas2.Worker - ' +
+              'Inexistant region property given (' + p + ').');
     }
 
     // DEBUG
     function nan(v) {
       if (isNaN(v))
-        throw 'NaN alert!';
+        throw new TypeError('NaN alert!');
     }
 
 
@@ -204,6 +214,8 @@
           coefficient,
           xDist,
           yDist,
+          oldxDist,
+          oldyDist,
           ewc,
           mass,
           distance,
@@ -492,7 +504,7 @@
 
       // 2) Repulsion
       //--------------
-      // NOTES: adjustSizes = antiCollision & scalingRatio = coefficient
+      // NOTES: adjustSize = antiCollision & scalingRatio = coefficient
 
       if (W.settings.barnesHutOptimize) {
         coefficient = W.settings.scalingRatio;
@@ -522,7 +534,7 @@
                 xDist = NodeMatrix[np(n, 'x')] - RegionMatrix[rp(r, 'massCenterX')];
                 yDist = NodeMatrix[np(n, 'y')] - RegionMatrix[rp(r, 'massCenterY')];
 
-                if (W.settings.adjustSizes) {
+                if (W.settings.adjustSize) {
 
                   //-- Linear Anti-collision Repulsion
                   if (distance > 0) {
@@ -578,7 +590,7 @@
 
                 distance = Math.sqrt(xDist * xDist + yDist * yDist);
 
-                if (W.settings.adjustSizes) {
+                if (W.settings.adjustSize) {
 
                   //-- Linear Anti-collision Repulsion
                   if (distance > 0) {
@@ -630,7 +642,7 @@
             xDist = NodeMatrix[np(n1, 'x')] - NodeMatrix[np(n2, 'x')];
             yDist = NodeMatrix[np(n1, 'y')] - NodeMatrix[np(n2, 'y')];
 
-            if (W.settings.adjustSizes) {
+            if (W.settings.adjustSize) {
 
               //-- Anticollision Linear Repulsion
               distance = Math.sqrt(xDist * xDist + yDist * yDist) -
@@ -846,7 +858,8 @@
       var force,
           swinging,
           traction,
-          nodespeed;
+          nodespeed,
+          alldistance = 0;
 
       // MATH: sqrt and square distances
       if (W.settings.adjustSizes) {
@@ -883,6 +896,9 @@
             nodespeed =
               0.1 * Math.log(1 + traction) / (1 + Math.sqrt(swinging));
 
+            oldxDist = NodeMatrix[np(n, 'x')];
+            oldyDist = NodeMatrix[np(n, 'y')];
+
             // Updating node's positon
             NodeMatrix[np(n, 'x')] =
               NodeMatrix[np(n, 'x')] + NodeMatrix[np(n, 'dx')] *
@@ -890,6 +906,13 @@
             NodeMatrix[np(n, 'y')] =
               NodeMatrix[np(n, 'y')] + NodeMatrix[np(n, 'dy')] *
               (nodespeed / W.settings.slowDown);
+
+            xDist = NodeMatrix[np(n, 'x')];
+            yDist = NodeMatrix[np(n, 'y')];
+            distance = Math.sqrt(
+              Math.pow(xDist - oldxDist, 2) + Math.pow(yDist - oldyDist, 2)
+            );
+            alldistance += distance;
           }
         }
       }
@@ -925,6 +948,9 @@
                 (1 + Math.sqrt(swinging))
               ));
 
+            oldxDist = NodeMatrix[np(n, 'x')];
+            oldyDist = NodeMatrix[np(n, 'y')];
+
             // Updating node's positon
             NodeMatrix[np(n, 'x')] =
               NodeMatrix[np(n, 'x')] + NodeMatrix[np(n, 'dx')] *
@@ -932,12 +958,29 @@
             NodeMatrix[np(n, 'y')] =
               NodeMatrix[np(n, 'y')] + NodeMatrix[np(n, 'dy')] *
               (nodespeed / W.settings.slowDown);
+
+            xDist = NodeMatrix[np(n, 'x')];
+            yDist = NodeMatrix[np(n, 'y')];
+            distance = Math.sqrt(
+              Math.pow(xDist - oldxDist, 2) + Math.pow(yDist - oldyDist, 2)
+            );
+            alldistance += distance;
           }
         }
       }
 
       // Counting one more iteration
       W.iterations++;
+
+      // Auto stop.
+      // The greater the ratio nb nodes / nb edges,
+      // the greater the number of iterations needed to converge.
+      if (W.settings.autoStop) {
+        W.converged = (
+          W.iterations > W.settings.maxIterations ||
+          alldistance / W.nodesLength < W.settings.avgDistanceThreshold
+        );
+      }
     }
 
     /**
@@ -964,7 +1007,8 @@
 
         e.eventName = 'newCoords';
         e.data = {
-          nodes: NodeMatrix.buffer
+          nodes: NodeMatrix.buffer,
+          converged: W.converged
         };
         requestAnimationFrame(function() {
           document.dispatchEvent(e);
@@ -976,7 +1020,10 @@
       // From a WebWorker
       sendNewCoords = function() {
         self.postMessage(
-          {nodes: NodeMatrix.buffer},
+          {
+            nodes: NodeMatrix.buffer,
+            converged: W.converged
+          },
           [NodeMatrix.buffer]
         );
       };
@@ -1114,16 +1161,14 @@
   }
 
   if (inWebWorker) {
-
     // We are in a webworker, so we launch the Worker function
     eval(getWorkerFn());
   }
   else {
-
     // We are requesting the worker from sigma, we retrieve it therefore
     if (typeof sigma === 'undefined')
-      throw 'sigma is not declared';
+      throw new Error('sigma is not declared');
 
-    sigma.prototype.getForceAtlas2Worker = getWorkerFn;
+    sigma.layouts.getForceAtlas2Worker = getWorkerFn;
   }
 }).call(this);

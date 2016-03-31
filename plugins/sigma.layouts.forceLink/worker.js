@@ -1410,4 +1410,4 @@
 
     sigma.layouts.getForceLinkWorker = getWorkerFn;
   }
-}).call(this);
+}).call(window);

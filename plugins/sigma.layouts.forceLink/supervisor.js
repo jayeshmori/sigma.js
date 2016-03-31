@@ -405,4 +405,4 @@
   sigma.layouts.isForceLinkRunning = function() {
     return !!supervisor && supervisor.running;
   };
-}).call(this);
+}).call(window);

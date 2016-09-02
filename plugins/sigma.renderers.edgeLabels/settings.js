@@ -16,9 +16,9 @@ module.exports = function(sigma) {
      * *******************
      */
     // {string}
-    defaultEdgeLabelColor: '#000',
+    defaultEdgeLabelColor: '#aaaaaa',
     // {string}
-    defaultEdgeLabelActiveColor: '#000',
+    defaultEdgeLabelActiveColor: '#aaaaaa',
     // {string}
     defaultEdgeLabelSize: 10,
     // {string} Indicates how to choose the edge labels size. Available values:
@@ -36,6 +36,6 @@ module.exports = function(sigma) {
   sigma.settings = sigma.utils.extend(sigma.settings || {}, settings);
 
   // Override default settings:
-  sigma.settings.drawEdgeLabels = true;
+  sigma.settings.drawEdgeLabels = false;
 
 }

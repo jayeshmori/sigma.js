@@ -44,7 +44,7 @@
     //          "source", "target", "default"
     edgeColor: 'source',
     // {number} Defines the minimal edge's arrow display size.
-    minArrowSize: 0,
+    minArrowSize: 1,
     // {string}
     font: 'arial',
     // {string} Example: 'bold'
@@ -54,11 +54,11 @@
     labelColor: 'default',
     // {string} Indicates how to choose the labels size. Available values:
     //          "fixed", "proportional"
-    labelSize: 'fixed',
+    labelSize: 'proportional',
     // {string} The ratio between the font size of the label and the node size.
-    labelSizeRatio: 1,
+    labelSizeRatio: 1.5,
     // {number} The minimum size a node must have to see its label displayed.
-    labelThreshold: 8,
+    labelThreshold: 7,
     // {number} The oversampling factor used in WebGL renderer.
     webglOversamplingRatio: 2,
     // {number} The size of the border of hovered nodes.

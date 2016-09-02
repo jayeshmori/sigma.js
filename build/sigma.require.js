@@ -1,7 +1,7 @@
 ;(function(undefined) {
   'use strict';
 
-  var __instances = {};
+  var __instances = {}; 
 
   /**
    * This is the sigma instances constructor. One instance of sigma represent
@@ -1754,7 +1754,7 @@ if (typeof exports !== 'undefined') {
 
   // Initialize packages:
   sigma.utils = sigma.utils || {};
-
+  
   /**
    * MISC UTILS:
    */
@@ -2474,7 +2474,7 @@ if (typeof exports !== 'undefined') {
     return {
       top: top,
       left: left
-    };
+    }; 
   };
 
   /**
@@ -2492,10 +2492,8 @@ if (typeof exports !== 'undefined') {
     target._doubleClickHandler = target._doubleClickHandler || {};
     target._doubleClickHandler[type] = target._doubleClickHandler[type] || [];
     handlers = target._doubleClickHandler[type];
-
     handlers.push(function(e) {
       clicks++;
-
       if (clicks === 2) {
         clicks = 0;
         return callback(e);
@@ -2891,7 +2889,7 @@ if (typeof exports !== 'undefined') {
     //          "source", "target", "default"
     edgeColor: 'source',
     // {number} Defines the minimal edge's arrow display size.
-    minArrowSize: 0,
+    minArrowSize: 1,
     // {string}
     font: 'arial',
     // {string} Example: 'bold'
@@ -2901,11 +2899,11 @@ if (typeof exports !== 'undefined') {
     labelColor: 'default',
     // {string} Indicates how to choose the labels size. Available values:
     //          "fixed", "proportional"
-    labelSize: 'fixed',
+    labelSize: 'proportional',
     // {string} The ratio between the font size of the label and the node size.
-    labelSizeRatio: 1,
+    labelSizeRatio: 1.5,
     // {number} The minimum size a node must have to see its label displayed.
-    labelThreshold: 8,
+    labelThreshold: 7,
     // {number} The oversampling factor used in WebGL renderer.
     webglOversamplingRatio: 2,
     // {number} The size of the border of hovered nodes.

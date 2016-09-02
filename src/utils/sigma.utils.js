@@ -8,7 +8,7 @@
 
   // Initialize packages:
   sigma.utils = sigma.utils || {};
-
+  
   /**
    * MISC UTILS:
    */
@@ -728,7 +728,7 @@
     return {
       top: top,
       left: left
-    };
+    }; 
   };
 
   /**
@@ -746,10 +746,8 @@
     target._doubleClickHandler = target._doubleClickHandler || {};
     target._doubleClickHandler[type] = target._doubleClickHandler[type] || [];
     handlers = target._doubleClickHandler[type];
-
     handlers.push(function(e) {
       clicks++;
-
       if (clicks === 2) {
         clicks = 0;
         return callback(e);

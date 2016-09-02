@@ -10,7 +10,7 @@ module.exports = function(sigma) {
    * Author: Guillaume Plique (Yomguithereal)
    * Version: 0.0.1
    */
-
+ 
   // Terminating if sigma were not to be found
   if (typeof sigma === 'undefined')
     throw 'sigma.renderers.snapshot: sigma not in scope.';

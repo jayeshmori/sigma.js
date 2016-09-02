@@ -1,7 +1,7 @@
 ;(function(undefined) {
   'use strict';
 
-  var __instances = {};
+  var __instances = {}; 
 
   /**
    * This is the sigma instances constructor. One instance of sigma represent

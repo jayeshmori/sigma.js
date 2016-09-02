@@ -103,6 +103,8 @@ module.exports = function(grunt) {
       pluginFiles.push(dir + '**/*.js');
   });
 
+  var buildCopyPath = '/Users/jayeshmori/src/tresata-ids-k/installedPlugins/orion/node_modules/sigma';
+
   // Project configuration:
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -136,6 +138,25 @@ module.exports = function(grunt) {
         }
       }
     },
+    watch: {
+      scripts: {
+        files: ['src/**/*.js','plugins/**/*.js'],
+        tasks: ['build','copy:build'],
+        options: {
+          spawn: false,
+        },
+      },
+    },
+    copy: {
+      build: {
+        files: [
+          // includes files within path
+          {expand: true, src: ['build/**'], dest: buildCopyPath },
+          {expand: true, src: ['plugins/**'], dest: buildCopyPath }
+        ]
+      }
+    },
+
     uglify: {
       prod: {
         files: {
